@@ -8,18 +8,69 @@ output: html_document
 ```{r pacotes}
 library(magrittr)
 library(tidyverse)
-
+library(broom)
 
 
 ```
 
 ```{r}
 ##leitura dos dados
-red <- read.csv("winequality/winequality-red.csv",header = T,sep =";") %>% 
-  mutate(vinho = "red")
+red <- read.csv("winequality/winequality-red.csv",header = T,sep = ";") %>% 
+  mutate(vinho = as.factor("red"))
 
-white <- read.csv("winequality/winequality-white.csv",header = T,sep =";") %>% mutate(vinho ="white")
-
+white <- read.csv("winequality/winequality-white.csv",header = T,sep = ";") %>% mutate(vinho =as.factor("white"))
 dados <- rbind(white,red)
+
+```
+
+```{r}
+glimpse(dados)
+dados %<>% mutate(quality = as.numeric(quality))
+
+cv <- function(x){
+ 100 * sd(x)/mean(x)
+}
+
+descritivas <- 
+dados %>% select_if(.predicate = is.numeric) %>% 
+  gather(coluna,valores) %>% 
+  group_by(coluna) %>% 
+  summarise_if(.predicate = function(x) is.numeric(x),
+                  .funs = c(Media = "mean",
+                     DP = "sd",
+                     Var. = "var",
+                     Minimo = "min",
+                     CV =  "cv",
+                     Mediana = "median",
+                     Maximo = "max",
+                     n = "length")) %>% 
+  mutate_if(.predicate = is.numeric,funs(round(.,3)))
+descritivas
+corrplot::corrplot(cor(dados[1:10]),method="ellipse",order = "hclust", addrect=NULL)
+
+
+
+```
+
+
+```{r}
+cv <- function(x){
+ 100* sd(x)/mean(x)
+}
+descritivas <- 
+dados %>% select_if(.predicate = is.numeric) %>% 
+  gather(coluna,valores) %>% 
+  group_by(coluna) %>% 
+  summarise_if(.predicate = function(x) is.numeric(x),
+                  .funs = c(Media = "mean",
+                     DP = "sd",
+                     Var. = "var",
+                     Minimo = "min",
+                     CV =  "cv",
+                     Mediana = "median",
+                     Maximo = "max",
+                     n = "length")) %>% 
+  mutate_if(.predicate = is.numeric,funs(round(.,3)))
+
 ```
 
