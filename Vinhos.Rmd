@@ -3,3 +3,23 @@ title: "Vinhos"
 author: "Matheus"
 output: html_document
 ---
+
+
+```{r pacotes}
+library(magrittr)
+library(tidyverse)
+
+
+
+```
+
+```{r}
+##leitura dos dados
+red <- read.csv("winequality/winequality-red.csv",header = T,sep =";") %>% 
+  mutate(vinho = "red")
+
+white <- read.csv("winequality/winequality-white.csv",header = T,sep =";") %>% mutate(vinho ="white")
+
+dados <- rbind(white,red)
+```
+
