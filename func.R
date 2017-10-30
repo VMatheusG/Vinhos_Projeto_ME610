@@ -5,5 +5,7 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-
-
+##calcul coeficiente de correlacao(%)
+cv <- function(x){
+  100* sd(x)/mean(x)
+}

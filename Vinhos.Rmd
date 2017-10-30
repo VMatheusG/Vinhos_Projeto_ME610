@@ -12,7 +12,8 @@ packages <- c("Rcpp",
               "tidyverse",
               "magrittr",
               "tidyverse",
-              "broom")
+              "broom",
+              "corrplot")
 ipak(packages)
 
 ```
@@ -58,9 +59,7 @@ corrplot::corrplot(cor(dados[1:10]),method="ellipse",order = "hclust", addrect=N
 
 
 ```{r}
-cv <- function(x){
- 100* sd(x)/mean(x)
-}
+
 descritivas <- 
 dados %>% select_if(.predicate = is.numeric) %>% 
   gather(coluna,valores) %>% 
