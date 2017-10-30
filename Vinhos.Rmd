@@ -1,6 +1,6 @@
 ---
 title: "Vinhos"
-author: "Matheus"
+author: "Matheus, Murilo"
 output: html_document
 ---
 
@@ -86,5 +86,6 @@ fatorial <- function(x){
     return(x*fatorial(x-1))
 }
 fatorial(5)
+
 ```
 
