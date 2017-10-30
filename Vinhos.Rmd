@@ -6,10 +6,14 @@ output: html_document
 
 
 ```{r pacotes}
-library(magrittr)
-library(tidyverse)
-library(broom)
-
+source("func.R")
+# packages
+packages <- c("Rcpp",
+              "tidyverse",
+              "magrittr",
+              "tidyverse",
+              "broom")
+ipak(packages)
 
 ```
 
