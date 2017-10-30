@@ -77,5 +77,11 @@ dados %>% select_if(.predicate = is.numeric) %>%
 
 ```
 
+```{r}
+dados %<>% mutate(qualidade = cl(quality))
+m.X <- dados %>% select(qualidade, vinho) %>% table()
+m.X <- as.matrix(m.X)
+
+```
 
 
