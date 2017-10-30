@@ -4,7 +4,6 @@ author: "Matheus, Murilo"
 output: html_document
 ---
 
-
 ```{r pacotes}
 source("func.R")
 # packages
@@ -13,7 +12,9 @@ packages <- c("Rcpp",
               "magrittr",
               "tidyverse",
               "broom",
-              "corrplot")
+              "corrplot",
+              "ca",
+              "RColorBrewer")
 ipak(packages)
 
 ```
@@ -52,9 +53,6 @@ dados %>% select_if(.predicate = is.numeric) %>%
   mutate_if(.predicate = is.numeric,funs(round(.,3)))
 descritivas
 corrplot::corrplot(cor(dados[1:10]),method="ellipse",order = "hclust", addrect=NULL)
-
-
-
 ```
 
 
@@ -77,10 +75,122 @@ dados %>% select_if(.predicate = is.numeric) %>%
 
 ```
 
+
 ```{r}
+#ANALISANDO POSSIVEIS VARIAVEIS INFLUENTES NA ANALISE NA QUALIDADE DO VINHO
+#Começarei analisando o alcool, açucar, ph
+myCol <- brewer.pal(8, "Dark2")
+
+p1 <- dados %>% ggplot(aes(quality,alcohol,fill = quality,group = quality)) +
+  geom_boxplot(show.legend = T) +
+  theme_bw() +
+  labs(y="Porcentagem (%)", title = "Boxplot Porcentagem de Alcool por\n Qualidade") +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
+  axis.text.x=element_text(colour = "white")) +
+  guides(fill = guide_legend(title = "Qualidade")) +
+  scale_fill_manual(values = myCol) 
+
+
+p2 <- dados %>% ggplot(aes(quality,pH,fill = quality,group = quality)) +
+  geom_boxplot(show.legend = T) +
+  theme_bw() +
+  labs(y="Valores do pH (0-14)", title = "Boxplot pH do vinho por\n Qualidade") +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
+  axis.text.x=element_text(colour = "white")) +
+  guides(fill = guide_legend(title = "Qualidade")) +
+  scale_fill_manual(values = myCol) 
+
+
+p3 <- dados %>% ggplot(aes(quality,residual.sugar,fill = quality,group = quality)) +
+  geom_boxplot(show.legend = T) +
+  theme_bw() +
+  labs(y="Açucar residual (gramas)", title = "Boxplot açucar residual por\n Qualidade") +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
+  axis.text.x=element_text(colour = "white")) +
+  guides(fill = guide_legend(title = "Qualidade")) +
+  scale_fill_manual(values = myCol) 
+
+
+p4 <- dados %>% ggplot(aes(quality,density,fill = quality,group = quality)) +
+  geom_boxplot(show.legend = T) +
+  theme_bw() +
+  labs(y="Valores da densidade do vinho", title = "Boxplot pela densidade do vinho por\n Qualidade") +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
+  axis.text.x=element_text(colour = "white")) +
+  guides(fill = guide_legend(title = "Qualidade")) +
+  scale_fill_manual(values = myCol) 
+
+grid.arrange(p1,p2,p3,p4)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+
+
+ctable <- chicago_dados %>% select(PrimaryType, LocationDescription)
+ctable = as.data.frame(ctable)
+
+my_table_0 <- table(ctable$PrimaryType, ctable$LocationDescription)
+
 dados %<>% mutate(qualidade = cl(quality))
-m.X <- dados %>% select(qualidade, vinho) %>% table()
-m.X <- as.matrix(m.X)
+m.X <- dados %>% select(qualidade, vinho) 
+m.X <- as.data.frame(m.X)
+my_table_0 <- table(m.X$qualidade, m.X$vinho)
+m.X <- my_table_0
+a =as.matrix(m.X)
+chisq.test(m.X)
+
+m.X <- rbind(cbind(180, 18),cbind(183, 63),cbind(4535, 1518))
+dimnames(m.X) <- list(c("Alto","Baixo","Medio"),c("Red","white"))
+names(dimnames(m.X)) <- c("quality","vinho")
+
+
+# teste de chi-quadrado
+chisq.test(m.X)
+
+
+
+# Inércia
+resultCA <- ca(m.X) # names(resultCA)
+inercia<-summary(resultCA)$scree # names(summary(resultCA))
+xtable(cbind(inercia[,2], inercia[,2]^2,inercia[,3],inercia[,4]),digits=4)
+
+# Componentes
+resultFCA <- plot(resultCA,xlab="componente 1",ylab="componente 2",cex=1.2)
+xtable(resultFCA$rows,digits=4)
+xtable(resultFCA$cols,digits=4)
+biplot(resultFCA$rows,resultFCA$cols,var.axes=FALSE,xlab="componente 1", ylab="componente 2",cex=1.2,xlim=c(-0.9,0.5))
+abline(0,0,lty=2)
+abline(v=0,lty=2)
 
 ```
 
