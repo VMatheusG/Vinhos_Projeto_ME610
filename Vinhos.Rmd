@@ -14,7 +14,9 @@ packages <- c("Rcpp",
               "broom",
               "corrplot",
               "ca",
-              "RColorBrewer")
+              "RColorBrewer",
+              "gridExtra",
+              "forcats")
 ipak(packages)
 
 ```
@@ -31,11 +33,8 @@ dados <- rbind(white,red)
 
 ```{r}
 glimpse(dados)
-dados %<>% mutate(quality = as.numeric(quality))
-
-cv <- function(x){
- 100 * sd(x)/mean(x)
-}
+dados %<>% mutate( quality = as.numeric(quality),
+                  qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
 
 descritivas <- 
 dados %>% select_if(.predicate = is.numeric) %>% 
@@ -57,30 +56,10 @@ corrplot::corrplot(cor(dados[1:10]),method="ellipse",order = "hclust", addrect=N
 
 
 ```{r}
-
-descritivas <- 
-dados %>% select_if(.predicate = is.numeric) %>% 
-  gather(coluna,valores) %>% 
-  group_by(coluna) %>% 
-  summarise_if(.predicate = function(x) is.numeric(x),
-                  .funs = c(Media = "mean",
-                     DP = "sd",
-                     Var. = "var",
-                     Minimo = "min",
-                     CV =  "cv",
-                     Mediana = "median",
-                     Maximo = "max",
-                     n = "length")) %>% 
-  mutate_if(.predicate = is.numeric,funs(round(.,3)))
-
-```
-
-
-```{r}
 #ANALISANDO POSSIVEIS VARIAVEIS INFLUENTES NA ANALISE NA QUALIDADE DO VINHO
 #Começarei analisando o alcool, açucar, ph
 myCol <- brewer.pal(8, "Dark2")
-
+dados %<>%  mutate(quality = factor(quality))
 p1 <- dados %>% ggplot(aes(quality,alcohol,fill = quality,group = quality)) +
   geom_boxplot(show.legend = T) +
   theme_bw() +

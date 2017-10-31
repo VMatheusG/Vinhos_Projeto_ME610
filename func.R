@@ -1,3 +1,5 @@
+## carrega e instala pacotes
+
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
   if (length(new.pkg))
@@ -5,24 +7,21 @@ ipak <- function(pkg){
   sapply(pkg, require, character.only = TRUE)
 }
 
-##calcul coeficiente de correlacao(%)
+##calcula coeficiente de correlacao(%)
 cv <- function(x){
-  100* sd(x)/mean(x)
+  100 * sd(x)/mean(x)
 }
-
+##decompoem a a variavel quality em 3 niveis
 cl <- function(x){
-  y = vector("integer", length(x))
-  for(i in 1:length(x)){
-    if(x[i] <= 4){
-      y[i] <- "Baixo"
-    }
-    else if(x[i] > 4 & x[i] <= 7){
-      y[i] <- "Médio"
-    }
-    else
-      y[i] <- "Alto"
-  }
-return(factor(y))
+
+  if (x <= 4)
+    y <- "Baixo"
+  else if ( x > 4 & x <= 7)
+    y <- "Medio"
+  else
+    y <- "Alto"
+
+  return(y)
 }
 
 
