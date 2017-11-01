@@ -16,7 +16,9 @@ packages <- c("Rcpp",
               "ca",
               "RColorBrewer",
               "gridExtra",
-              "forcats")
+              "forcats",
+              "rpart",
+              "rpart.plot")
 ipak(packages)
 
 ```
@@ -173,4 +175,11 @@ abline(v=0,lty=2)
 
 ```
 
+
+```{r arvore de decisao}
+
+fit <- rpart(qualidade~.-quality,data = dados,control = rpart.control(cp= 0,minsplit= 50))
+summary(fit)
+rpart.plot(fit)
+```
 
