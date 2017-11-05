@@ -19,10 +19,14 @@ packages <- c("Rcpp",
               "forcats",
               "rpart",
               "rpart.plot",
-              "pROC")
+              "pROC",
+              "randomForest",
+              "ggbiplot")
 
 ipak(packages)
 
+#library(devtools)
+#install_github("vqv/ggbiplot")
 ```
 
 ##Carregando os dados
@@ -162,8 +166,6 @@ rpart.plot(fit_pruned, type = 3, fallen.leaves = TRUE,cex = 0.35)
 ```
 
 ```{r}
-library(ggplot2)
-library(ggbiplot)
 #USADO PCA
 wine <- dados[,1:11]
 wine.pca <- prcomp(wine, scale. = TRUE)
