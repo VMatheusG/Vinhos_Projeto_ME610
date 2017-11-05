@@ -136,73 +136,6 @@ p4 <- dados %>% ggplot(aes(quality,density,fill = quality,group = quality)) +
 grid.arrange(p1,p2,p3,p4)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r}
-
-
-ctable <- chicago_dados %>% select(PrimaryType, LocationDescription)
-ctable = as.data.frame(ctable)
-
-my_table_0 <- table(ctable$PrimaryType, ctable$LocationDescription)
-
-dados %<>% mutate(qualidade = cl(quality))
-m.X <- dados %>% select(qualidade, vinho) 
-m.X <- as.data.frame(m.X)
-my_table_0 <- table(m.X$qualidade, m.X$vinho)
-m.X <- my_table_0
-a =as.matrix(m.X)
-chisq.test(m.X)
-
-m.X <- rbind(cbind(180, 18),cbind(183, 63),cbind(4535, 1518))
-dimnames(m.X) <- list(c("Alto","Baixo","Medio"),c("Red","white"))
-names(dimnames(m.X)) <- c("quality","vinho")
-
-
-# teste de chi-quadrado
-chisq.test(m.X)
-
-
-
-# Inércia
-resultCA <- ca(m.X) # names(resultCA)
-inercia<-summary(resultCA)$scree # names(summary(resultCA))
-xtable(cbind(inercia[,2], inercia[,2]^2,inercia[,3],inercia[,4]),digits=4)
-
-# Componentes
-resultFCA <- plot(resultCA,xlab="componente 1",ylab="componente 2",cex=1.2)
-xtable(resultFCA$rows,digits=4)
-xtable(resultFCA$cols,digits=4)
-biplot(resultFCA$rows,resultFCA$cols,var.axes=FALSE,xlab="componente 1", ylab="componente 2",cex=1.2,xlim=c(-0.9,0.5))
-abline(0,0,lty=2)
-abline(v=0,lty=2)
-
-```
-
 ##arvore de decisao
 
 ```{r arvore de decisao}
@@ -228,4 +161,39 @@ par()
 rpart.plot(fit_pruned, type = 3, fallen.leaves = TRUE,cex = 0.35)
 ```
 
+```{r}
+library(ggplot2)
+library(ggbiplot)
+#USADO PCA
+wine <- dados[,1:11]
+wine.pca <- prcomp(wine, scale. = TRUE)
+ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
+         groups = dados[,13], ellipse = TRUE, circle = TRUE) +
+  scale_color_discrete(name = '') +
+  theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
+```
+
+```{r echo=FALSE, warning=FALSE}
+#FLORESTA ALEATORIA
+dados$rating[5 >= dados$quality ] = "Ruim"
+dados$rating[5< dados$quality & dados$quality < 7] = "Medio"
+dados$rating[7<= dados$quality] = "Bom"
+dados$rating = as.factor(dados$rating)
+
+dados$rating = relevel(dados$rating, "Ruim")
+
+
+model_RF = randomForest(rating ~ . -vinho -quality, data=dados)
+print(model_RF) 
+
+print(importance(model_RF,type = 2)) 
+
+pred_RF = predict(model_RF)
+```
+
+```{r echo=FALSE}
+table(dados$rating, pred_RF)
+#(1873+2302+840)/(1873+497+14+385+2302+149+26+411+840) = 0.77 precisao
+#Da floresta aleatório mostrado acima, podemos concluir que o alcool  eh um fator importante que na qualidade do vinho (ruim, bom, medio). Além disso, o modelo tem apenas 23% de erro que significa que podemos prever com precisão de 77%.
+```
 
