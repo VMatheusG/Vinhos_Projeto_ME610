@@ -173,10 +173,14 @@ ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
          groups = dados[,13], ellipse = TRUE, circle = TRUE) +
   scale_color_discrete(name = '') +
   theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
+
+
+#A PARTIR DAQUI, DEVIDO A SEPARACAO DOS GRUPOS, RESOLVI ANALISAR SEPARADAMENTE
 ```
 
+
 ```{r echo=FALSE, warning=FALSE}
-#FLORESTA ALEATORIA
+#FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
 dados$rating[5 >= dados$quality ] = "Ruim"
 dados$rating[5< dados$quality & dados$quality < 7] = "Medio"
 dados$rating[7<= dados$quality] = "Bom"
@@ -199,3 +203,94 @@ table(dados$rating, pred_RF)
 #Da floresta aleatório mostrado acima, podemos concluir que o alcool  eh um fator importante que na qualidade do vinho (ruim, bom, medio). Além disso, o modelo tem apenas 23% de erro que significa que podemos prever com precisão de 77%.
 ```
 
+```{r echo=FALSE, warning=FALSE}
+#FLORESTA ALEATORIA - VINHO VERMELHO
+red$rating[5 >= red$quality ] = "Ruim"
+red$rating[5< red$quality & red$quality < 7] = "Medio"
+red$rating[7<= red$quality] = "Bom"
+red$rating = as.factor(red$rating)
+
+red$rating = relevel(red$rating, "Ruim")
+
+
+V_model_RF = randomForest(rating ~ . -vinho -quality, data=red)
+print(model_RF) 
+
+print(importance(V_model_RF,type = 2)) 
+
+V_pred_RF = predict(V_model_RF)
+```
+
+```{r echo=FALSE, warning=FALSE}
+#FLORESTA ALEATORIA - VINHO BRANCO
+white$rating[5 >= white$quality ] = "Ruim"
+white$rating[5< white$quality & white$quality < 7] = "Medio"
+white$rating[7<= white$quality] = "Bom"
+white$rating = as.factor(white$rating)
+
+white$rating = relevel(white$rating, "Ruim")
+
+
+B_model_RF = randomForest(rating ~ . -vinho -quality, data=white)
+print(B_model_RF) 
+
+print(importance(B_model_RF,type = 2)) 
+
+B_pred_RF = predict(B_model_RF)
+```
+
+```{r}
+ggplot(data = dados, aes(y = alcohol, x = quality)) +
+   geom_point(alpha = 1/4, position = position_jitter(h = 0), size = 1, col = "red") +
+   geom_smooth(method = 'lm') +
+   facet_wrap(~ vinho)
+```
+
+```{r}
+#ALCOOL VS DENSIDADE
+dados$quality <- as.factor(dados$quality)
+
+dados %>% ggplot(aes(x = density, y = alcohol, color = quality)) +
+    facet_wrap(~vinho) + 
+    geom_point(size = 3, alpha = 1/4) +
+    scale_color_identity(guide = 'legend') +
+    ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
+    xlim(min(dados$density), quantile(dados$density, 0.95)) +theme_bw()
+```
+
+
+```{r}
+#ALCOOL VS ACIDEZ
+dados$quality <- as.factor(dados$quality)
+
+dados %>% ggplot(aes(x = volatile.acidity, y = alcohol, color = quality)) +
+    facet_wrap(~vinho) + 
+    geom_point(size = 3, alpha = 1/4) +
+    scale_color_identity(guide = 'legend') +
+    ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
+    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95)) +theme_bw()
+```
+
+```{r}
+#ALCOOL VS ACIDEZ
+dados$quality <- as.factor(dados$quality)
+
+dados %>% ggplot(aes(x = volatile.acidity, y = density, color = quality)) +
+    facet_wrap(~vinho) + 
+    geom_point(size = 3, alpha = 1/4) +
+    scale_color_identity(guide = 'legend') +
+    ylim(min(dados$density), quantile(dados$density, 0.95)) +
+    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95))  +theme_bw()
+```
+
+```{r}
+#SULFATO VS ALCOOL
+dados$quality <- as.factor(dados$quality)
+
+dados %>% ggplot(aes(x = sulphates, y = alcohol, color = quality)) +
+    facet_wrap(~vinho) + 
+    geom_point(size = 3, alpha = 1/4) +
+    scale_color_identity(guide = 'legend') +
+    ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
+    xlim(min(dados$sulphates), quantile(dados$sulphates, 0.95)) +theme_bw()
+```
