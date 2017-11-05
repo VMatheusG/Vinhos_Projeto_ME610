@@ -3,7 +3,7 @@ title: "Vinhos"
 author: "Matheus, Murilo"
 output: html_document
 ---
-
+##pacotes
 ```{r pacotes}
 source("func.R")
 # packages
@@ -18,10 +18,14 @@ packages <- c("Rcpp",
               "gridExtra",
               "forcats",
               "rpart",
-              "rpart.plot")
+              "rpart.plot",
+              "pROC")
+
 ipak(packages)
 
 ```
+
+##Carregando os dados
 
 ```{r}
 ##leitura dos dados
@@ -32,8 +36,25 @@ white <- read.csv("winequality/winequality-white.csv",header = T,sep = ";") %>% 
 dados <- rbind(white,red)
 
 ```
+##Descritivas
 
-```{r}
+```{r }
+dados %<>% mutate( quality = as.numeric(quality),
+                  qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
+
+corrplot::corrplot(cor(dados[1:12]),method="ellipse",order = "hclust", addrect=NULL)
+
+cbind(
+cor(x=red[,1:11], y=red$quality),
+cor(x=white[,1:11], y=white$quality))
+indep <- c("vinho","volatile.acidity","sulphates","alcohol",
+           "density","chlorides")
+data <- dados %>% select(indep,quality,qualidade)
+corrplot::corrplot(cor(data[2:5]),method="ellipse",order = "hclust", addrect=NULL)
+set.seed(1)
+sample_rows <- sample(1:nrow(data), nrow(data)*.75)
+train <- data[sample_rows,]
+test <- data[-sample_rows,]
 glimpse(dados)
 dados %<>% mutate( quality = as.numeric(quality),
                   qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
@@ -53,9 +74,16 @@ dados %>% select_if(.predicate = is.numeric) %>%
                      n = "length")) %>% 
   mutate_if(.predicate = is.numeric,funs(round(.,3)))
 descritivas
-corrplot::corrplot(cor(dados[1:10]),method="ellipse",order = "hclust", addrect=NULL)
+
 ```
 
+##variavel resposta
+
+```{r}
+ggplot(dados,aes(quality)) + stat_count()
+ggplot(dados,aes(qualidade)) + stat_count()
+
+```
 
 ```{r}
 #ANALISANDO POSSIVEIS VARIAVEIS INFLUENTES NA ANALISE NA QUALIDADE DO VINHO
@@ -175,11 +203,29 @@ abline(v=0,lty=2)
 
 ```
 
+##arvore de decisao
 
 ```{r arvore de decisao}
+train %<>% select(-quality)
+fit <- rpart(qualidade~.,data = train,method = "class",control = rpart.control(cp = 0))
 
-fit <- rpart(qualidade~.-quality,data = dados,control = rpart.control(cp= 0,minsplit= 50))
-summary(fit)
-rpart.plot(fit)
+
+plotcp(fit)
+fit_pruned <- prune(fit, cp = 0.0022)
+test$pred <- predict(newdata = test,fit_pruned,type = "class")
+##cunfision matrix
+table(predito = test$pred,real = test$qualidade)
+
+
+##precisao
+mean(test$pred == test$qualidade)
+
+library(rpart.plot)
+# Plot the loan_model with default settings
+
+par()
+# Plot the loan_model with customized settings
+rpart.plot(fit_pruned, type = 3, fallen.leaves = TRUE,cex = 0.35)
 ```
+
 
