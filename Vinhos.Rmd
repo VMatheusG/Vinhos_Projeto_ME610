@@ -1,7 +1,9 @@
 ---
 title: "Vinhos"
 author: "Matheus, Murilo"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 ##pacotes
 ```{r pacotes}
@@ -21,7 +23,8 @@ packages <- c("Rcpp",
               "rpart.plot",
               "pROC",
               "randomForest",
-              "ggbiplot")
+              "caret",
+              "xtable")
 
 ipak(packages)
 
@@ -42,7 +45,7 @@ dados <- rbind(white,red)
 ```
 ##Descritivas
 
-```{r }
+```{r results = "asis" }
 dados %<>% mutate( quality = as.numeric(quality),
                   qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
 
@@ -62,11 +65,11 @@ test <- data[-sample_rows,]
 glimpse(dados)
 dados %<>% mutate( quality = as.numeric(quality),
                   qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
-library(xtable)
+options(xtable.comment = FALSE)
 descritivas <- 
 dados %>% select_if(.predicate = is.numeric) %>% 
   gather(coluna,valores) %>% 
-  group_by(coluna) %>% 
+  group_by(Coluna = coluna) %>% 
   summarise_if(.predicate = function(x) is.numeric(x),
                   .funs = c(Media = "mean",
                      DP = "sd",
@@ -74,10 +77,9 @@ dados %>% select_if(.predicate = is.numeric) %>%
                      Minimo = "min",
                      CV =  "cv",
                      Mediana = "median",
-                     Maximo = "max",
-                     n = "length")) %>% 
+                     Maximo = "max")) %>% 
   mutate_if(.predicate = is.numeric,funs(round(.,3)))
-xtable(descritivas)
+xtable(descritivas,caption = "Medidas Descritivas",digits = 3)
 
 
 
@@ -179,11 +181,11 @@ prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],
 ```{r}
 #USADO PCA
 wine <- dados[,1:11]
-wine.pca <- prcomp(wine, scale. = TRUE)
-ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
-         groups = dados[,13], ellipse = TRUE, circle = TRUE) +
-  scale_color_discrete(name = '') +
-  theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
+# wine.pca <- prcomp(wine, scale. = TRUE)
+# ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
+#          groups = dados[,13], ellipse = TRUE, circle = TRUE) +
+#   scale_color_discrete(name = '') +
+#   theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
 
 
 #A PARTIR DAQUI, DEVIDO A SEPARACAO DOS GRUPOS, RESOLVI ANALISAR SEPARADAMENTE
