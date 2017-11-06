@@ -14,9 +14,9 @@ cv <- function(x){
 ##decompoem a a variavel quality em 3 niveis
 cl <- function(x){
 
-  if (x <= 4)
+  if (x <= 5)
     y <- "Baixo"
-  else if ( x > 4 & x <= 7)
+  else if ( x == 6)
     y <- "Medio"
   else
     y <- "Alto"

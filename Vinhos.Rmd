@@ -91,6 +91,9 @@ ggplot(dados,aes(quality),fill = "blue") + stat_count(fill = "blue",aes(y = (..c
   labs(x = "Qualidade",y="Proporção")
 table(dados$quality)
 prop.table(table(dados$quality))
+ggplot(dados,aes(qualidade),fill = "blue") + stat_count(fill = "blue",aes(y = (..count..)/sum(..count..))) +
+  theme_bw() +
+  labs(x = "Qualidade",y = "Proporção")
 
 ```
 
@@ -137,19 +140,30 @@ p4 <- dados %>% ggplot(aes(quality,density,fill = quality,group = quality)) +
 grid.arrange(p1,p2,p3,p4)
 ```
 
-##arvore de decisao
+##Florestas
 
 ```{r arvore de decisao}
-dados %<>% select(-qualidade) %>% mutate(quality = as.numeric(quality))
+dados %<>% mutate(quality = as.numeric(quality))
 
 ##floresta
-rf_model <- randomForest(quality ~.,data = dados,  importance=TRUE ,ntree = 500)
+rf_model <- randomForest(quality ~. - qualidade,data = dados,  importance=TRUE ,ntree = 500)
 
 
 predito <- round(predict(rf_model))
 table(predicao=predito, observado=dados$quality)
 mean(predito == dados$quality)
 varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
+
+##floresta 2.0
+
+rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE ,ntree = 500)
+
+
+predito <- predict(rf_model)
+table(predicao=predito, observado=dados$qualidade)
+mean(predito == dados$qualidade)
+varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
+
 ```
 
 ```{r}
