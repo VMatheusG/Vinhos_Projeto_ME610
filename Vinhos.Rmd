@@ -235,12 +235,7 @@ print(importance(B_model_RF,type = 2))
 B_pred_RF = predict(B_model_RF)
 ```
 
-```{r}
-ggplot(data = dados, aes(y = alcohol, x = quality)) +
-   geom_point(alpha = 1/4, position = position_jitter(h = 0), size = 1, col = "red") +
-   geom_smooth(method = 'lm') +
-   facet_wrap(~ vinho)
-```
+
 
 ```{r}
 #ALCOOL VS DENSIDADE
@@ -251,7 +246,9 @@ dados %>% ggplot(aes(x = density, y = alcohol, color = quality)) +
     geom_point(size = 3, alpha = 1/4) +
     scale_color_identity(guide = 'legend') +
     ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
-    xlim(min(dados$density), quantile(dados$density, 0.95)) +theme_bw()
+    xlim(min(dados$density), quantile(dados$density, 0.95)) +
+    theme_bw() + 
+    labs(y = "Alcool",x = "Densidade",color = "Qualidade") 
 ```
 
 
@@ -264,11 +261,13 @@ dados %>% ggplot(aes(x = volatile.acidity, y = alcohol, color = quality)) +
     geom_point(size = 3, alpha = 1/4) +
     scale_color_identity(guide = 'legend') +
     ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
-    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95)) +theme_bw()
+    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95)) + 
+  theme_bw() +
+     labs(y = "Alcool",x = "acidez volátil",color = "Qualidade") 
 ```
 
 ```{r}
-#ALCOOL VS ACIDEZ
+#volatile.acidity VS density
 dados$quality <- as.factor(dados$quality)
 
 dados %>% ggplot(aes(x = volatile.acidity, y = density, color = quality)) +
@@ -276,7 +275,8 @@ dados %>% ggplot(aes(x = volatile.acidity, y = density, color = quality)) +
     geom_point(size = 3, alpha = 1/4) +
     scale_color_identity(guide = 'legend') +
     ylim(min(dados$density), quantile(dados$density, 0.95)) +
-    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95))  +theme_bw()
+    xlim(min(dados$volatile.acidity), quantile(dados$volatile.acidity, 0.95))  + theme_bw() +
+   labs(y = "Densidade",x = "acidez volátil",color = "Qualidade")
 ```
 
 ```{r}
@@ -288,5 +288,7 @@ dados %>% ggplot(aes(x = sulphates, y = alcohol, color = quality)) +
     geom_point(size = 3, alpha = 1/4) +
     scale_color_identity(guide = 'legend') +
     ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
-    xlim(min(dados$sulphates), quantile(dados$sulphates, 0.95)) +theme_bw()
+    xlim(min(dados$sulphates), quantile(dados$sulphates, 0.95)) +theme_bw() +
+  labs(y = "Sulfato",x = "Alcool",color = "Qualidade")
+  
 ```
