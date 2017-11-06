@@ -77,8 +77,8 @@ dados %>% select_if(.predicate = is.numeric) %>%
                      Maximo = "max",
                      n = "length")) %>% 
   mutate_if(.predicate = is.numeric,funs(round(.,3)))
-a <- xtable(descritivas)
-print.xtable(a, type="latex", file="aa.tex")
+xtable(descritivas)
+
 
 
 ```
@@ -140,27 +140,16 @@ grid.arrange(p1,p2,p3,p4)
 ##arvore de decisao
 
 ```{r arvore de decisao}
-dados %<>% select(-quality)
-fit <- rpart(qualidade ~.,data = dados,method = "class",control = rpart.control(cp = 0))
+dados %<>% select(-qualidade) %>% mutate(quality = as.numeric(quality))
+
+##floresta
+rf_model <- randomForest(quality ~.,data = dados,  importance=TRUE ,ntree = 500)
 
 
-plotcp(fit)
-fit_pruned <- prune(fit, cp = 0.013)
-dados$pred <- predict(newdata = dados,fit_pruned,type = "class")
-##cunfision matrix
-table(predito = dados$pred,real = dados$qualidade)
-
-
-##precisao
-mean(dados$pred == dados$qualidade)
-dados$qualidade1 <- "Medio"
-mean(dados$pred == dados$qualidade1)
-library(rpart.plot)
-# Plot the loan_model with default settings
-
-
-# Plot the loan_model with customized settings
-rpart.plot(fit_pruned, type = 3, fallen.leaves = TRUE,cex = 0.35)
+predito <- round(predict(rf_model))
+table(predicao=predito, observado=dados$quality)
+mean(predito == dados$quality)
+varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 ```
 
 ```{r}
@@ -176,7 +165,7 @@ ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
 #A PARTIR DAQUI, DEVIDO A SEPARACAO DOS GRUPOS, RESOLVI ANALISAR SEPARADAMENTE
 ```
 
-
+#FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
 ```{r echo=FALSE, warning=FALSE}
 #FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
 dados$rating[5 >= dados$quality ] = "Ruim"
