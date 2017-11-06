@@ -91,6 +91,7 @@ ggplot(dados,aes(quality),fill = "blue") + stat_count(fill = "blue",aes(y = (..c
   labs(x = "Qualidade",y="Proporção")
 table(dados$quality)
 prop.table(table(dados$quality))
+
 ggplot(dados,aes(qualidade),fill = "blue") + stat_count(fill = "blue",aes(y = (..count..)/sum(..count..))) +
   theme_bw() +
   labs(x = "Qualidade",y = "Proporção")
@@ -145,8 +146,8 @@ grid.arrange(p1,p2,p3,p4)
 ```{r arvore de decisao}
 dados %<>% mutate(quality = as.numeric(quality))
 
-##floresta
-rf_model <- randomForest(quality ~. - qualidade,data = dados,  importance=TRUE ,ntree = 500)
+##floresta Regressao
+rf_model <- randomForest(quality ~. - qualidade,data = dados,  importance=TRUE ,ntree = 100)
 
 
 predito <- round(predict(rf_model))
@@ -154,15 +155,24 @@ table(predicao=predito, observado=dados$quality)
 mean(predito == dados$quality)
 varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 
-##floresta 2.0
+##floresta 2.0 Classificação
 
-rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE ,ntree = 500)
+rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE ,ntree = 100)
 
 
 predito <- predict(rf_model)
-table(predicao=predito, observado=dados$qualidade)
-mean(predito == dados$qualidade)
+confusionMatrix(predito,dados$qualidade)
 varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
+impToPlot <- importance(rf_model, scale=FALSE)
+dotchart(sort(impToPlot[,5]), xlim=c(0,600), xlab="Gini",main ="Importância das Variáveis" )
+##Arvore Classificação
+set.seed(1)
+tree <- rpart(qualidade ~. - quality,data = dados, control = rpart.control(cp = 0,maxdepth = 4))
+
+predito <- predict(tree,type = "class")
+confusionMatrix(predito,dados$qualidade)
+prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],tweak = 1.5,fallen.leaves = T,main = "Árvore de Decisão \n Qualidade do Vinho")
+
 
 ```
 
