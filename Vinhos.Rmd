@@ -164,6 +164,7 @@ rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE
 
 predito <- predict(rf_model)
 confusionMatrix(predito,dados$qualidade)
+table(Predito = predito,Referência = dados$qualidade)
 varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 impToPlot <- importance(rf_model, scale=FALSE)
 dotchart(sort(impToPlot[,5]), xlim=c(0,600), xlab="Gini",main ="Importância das Variáveis" )
@@ -172,7 +173,9 @@ set.seed(1)
 tree <- rpart(qualidade ~. - quality,data = dados, control = rpart.control(cp = 0,maxdepth = 4))
 
 predito <- predict(tree,type = "class")
+
 confusionMatrix(predito,dados$qualidade)
+table(Predito = predito,Referência = dados$qualidade)
 prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],tweak = 1.5,fallen.leaves = T,main = "Árvore de Decisão \n Qualidade do Vinho")
 
 
