@@ -62,7 +62,7 @@ test <- data[-sample_rows,]
 glimpse(dados)
 dados %<>% mutate( quality = as.numeric(quality),
                   qualidade = lvls_reorder(map_chr(quality,cl),c(2,3,1)))
-
+library(xtable)
 descritivas <- 
 dados %>% select_if(.predicate = is.numeric) %>% 
   gather(coluna,valores) %>% 
@@ -77,7 +77,9 @@ dados %>% select_if(.predicate = is.numeric) %>%
                      Maximo = "max",
                      n = "length")) %>% 
   mutate_if(.predicate = is.numeric,funs(round(.,3)))
-descritivas
+a <- xtable(descritivas)
+print.xtable(a, type="latex", file="aa.tex")
+
 
 ```
 
@@ -85,8 +87,9 @@ descritivas
 
 ```{r}
 ggplot(dados,aes(quality)) + stat_count()
+table(dados$quality)
 ggplot(dados,aes(qualidade)) + stat_count()
-
+table(dados$qualidade)
 ```
 
 ```{r}
@@ -95,46 +98,38 @@ ggplot(dados,aes(qualidade)) + stat_count()
 myCol <- brewer.pal(8, "Dark2")
 dados %<>%  mutate(quality = factor(quality))
 p1 <- dados %>% ggplot(aes(quality,alcohol,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = T) +
+  geom_boxplot(show.legend = F) +
   theme_bw() +
-  labs(y="Porcentagem (%)", title = "Boxplot Porcentagem de Alcool por\n Qualidade") +
+  labs(y="Porcentagem (%)", title = "Porcentagem de Alcool por\n Qualidade",x=NULL) +
   theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
-  axis.text.x=element_text(colour = "white")) +
-  guides(fill = guide_legend(title = "Qualidade")) +
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
   scale_fill_manual(values = myCol) 
 
 
 p2 <- dados %>% ggplot(aes(quality,pH,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = T) +
+  geom_boxplot(show.legend = F) +
   theme_bw() +
-  labs(y="Valores do pH (0-14)", title = "Boxplot pH do vinho por\n Qualidade") +
+  labs(y="Valores do pH (0-14)", title = "pH do vinho por\n Qualidade",x=NULL) +
   theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
-  axis.text.x=element_text(colour = "white")) +
-  guides(fill = guide_legend(title = "Qualidade")) +
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
   scale_fill_manual(values = myCol) 
 
 
 p3 <- dados %>% ggplot(aes(quality,residual.sugar,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = T) +
+  geom_boxplot(show.legend = F) +
   theme_bw() +
-  labs(y="Açucar residual (gramas)", title = "Boxplot açucar residual por\n Qualidade") +
+  labs(y="Açucar residual (gramas)", title = "Açucar residual por\n Qualidade",x=NULL) +
   theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
-  axis.text.x=element_text(colour = "white")) +
-  guides(fill = guide_legend(title = "Qualidade")) +
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
   scale_fill_manual(values = myCol) 
 
 
 p4 <- dados %>% ggplot(aes(quality,density,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = T) +
+  geom_boxplot(show.legend = F) +
   theme_bw() +
-  labs(y="Valores da densidade do vinho", title = "Boxplot pela densidade do vinho por\n Qualidade") +
+  labs(y="Valores da densidade do vinho", title = "Densidade do vinho por\n Qualidade",x=NULL) +
   theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans"),
-  axis.text.x=element_text(colour = "white")) +
-  guides(fill = guide_legend(title = "Qualidade")) +
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
   scale_fill_manual(values = myCol) 
 
 grid.arrange(p1,p2,p3,p4)
@@ -143,24 +138,25 @@ grid.arrange(p1,p2,p3,p4)
 ##arvore de decisao
 
 ```{r arvore de decisao}
-train %<>% select(-quality)
-fit <- rpart(qualidade~.,data = train,method = "class",control = rpart.control(cp = 0))
+dados %<>% select(-quality)
+fit <- rpart(qualidade ~.,data = dados,method = "class",control = rpart.control(cp = 0))
 
 
 plotcp(fit)
-fit_pruned <- prune(fit, cp = 0.0022)
-test$pred <- predict(newdata = test,fit_pruned,type = "class")
+fit_pruned <- prune(fit, cp = 0.013)
+dados$pred <- predict(newdata = dados,fit_pruned,type = "class")
 ##cunfision matrix
-table(predito = test$pred,real = test$qualidade)
+table(predito = dados$pred,real = dados$qualidade)
 
 
 ##precisao
-mean(test$pred == test$qualidade)
-
+mean(dados$pred == dados$qualidade)
+dados$qualidade1 <- "Medio"
+mean(dados$pred == dados$qualidade1)
 library(rpart.plot)
 # Plot the loan_model with default settings
 
-par()
+
 # Plot the loan_model with customized settings
 rpart.plot(fit_pruned, type = 3, fallen.leaves = TRUE,cex = 0.35)
 ```
