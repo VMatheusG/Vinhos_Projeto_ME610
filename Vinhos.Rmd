@@ -86,10 +86,12 @@ print.xtable(a, type="latex", file="aa.tex")
 ##variavel resposta
 
 ```{r}
-ggplot(dados,aes(quality)) + stat_count()
+ggplot(dados,aes(quality),fill = "blue") + stat_count(fill = "blue",aes(y = (..count..)/sum(..count..))) +
+  theme_bw() +
+  labs(x = "Qualidade",y="Proporção")
 table(dados$quality)
-ggplot(dados,aes(qualidade)) + stat_count()
-table(dados$qualidade)
+prop.table(table(dados$quality))
+
 ```
 
 ```{r}
