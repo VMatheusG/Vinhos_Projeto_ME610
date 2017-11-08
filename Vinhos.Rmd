@@ -82,6 +82,20 @@ dados %>% select_if(.predicate = is.numeric) %>%
 xtable(descritivas,caption = "Medidas Descritivas",digits = 3)
 
 
+ggplot(dados,aes(qualidade,density,fill = qualidade)) + geom_boxplot() +
+  facet_grid(.~vinho) + theme_bw()
+
+
+ggplot(dados,aes(qualidade,alcohol,fill = qualidade)) + geom_boxplot() +
+  facet_grid(.~vinho) + theme_bw()
+
+
+ggplot(dados,aes(qualidade,volatile.acidity,fill = qualidade)) + geom_boxplot() +
+  facet_grid(.~vinho) + theme_bw()
+
+
+
+
 
 ```
 
