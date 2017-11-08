@@ -96,7 +96,19 @@ ggplot(dados,aes(qualidade,volatile.acidity,fill = qualidade)) + geom_boxplot() 
   facet_grid(.~vinho) + theme_bw()
 
 
+```
 
+##Dispersao
+
+```{r}
+cols <- character(nrow(dados))
+cols[] <- "black"
+
+cols[dados$vinho == "Vermelho"] <- "red"
+cols[dados$vinho == "Branco"] <- "blue"
+pairs(dados[,1:11],col=cols,upper.panel = NULL)
+par(xpd = T)
+legend("topright", legend = c(levels(dados$vinho)),fill = c("blue",""))
 
 
 ```
@@ -116,66 +128,16 @@ ggplot(dados,aes(qualidade),fill = "blue") + stat_count(fill = "blue",aes(y = (.
 
 ```
 
-```{r}
-#ANALISANDO POSSIVEIS VARIAVEIS INFLUENTES NA ANALISE NA QUALIDADE DO VINHO
-#Começarei analisando o alcool, açucar, ph
-myCol <- brewer.pal(8, "Dark2")
-dados %<>%  mutate(quality = factor(quality))
-p1 <- dados %>% ggplot(aes(quality,alcohol,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = F) +
-  theme_bw() +
-  labs(y="Porcentagem (%)", title = "Porcentagem de Alcool por\n Qualidade",x=NULL) +
-  theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
-  scale_fill_manual(values = myCol) 
-
-
-p2 <- dados %>% ggplot(aes(quality,pH,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = F) +
-  theme_bw() +
-  labs(y="Valores do pH (0-14)", title = "pH do vinho por\n Qualidade",x=NULL) +
-  theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
-  scale_fill_manual(values = myCol) 
-
-
-p3 <- dados %>% ggplot(aes(quality,residual.sugar,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = F) +
-  theme_bw() +
-  labs(y="Açucar residual (gramas)", title = "Açucar residual por\n Qualidade",x=NULL) +
-  theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
-  scale_fill_manual(values = myCol) 
-
-
-p4 <- dados %>% ggplot(aes(quality,density,fill = quality,group = quality)) +
-  geom_boxplot(show.legend = F) +
-  theme_bw() +
-  labs(y="Valores da densidade do vinho", title = "Densidade do vinho por\n Qualidade",x=NULL) +
-  theme(plot.title = element_text(size = 12,lineheight=.8,  
-  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
-  scale_fill_manual(values = myCol) 
-
-grid.arrange(p1,p2,p3,p4)
-```
 
 ##Florestas
 
 ```{r arvore de decisao}
+set.seed(1)
 dados %<>% mutate(quality = as.numeric(quality))
-
-##floresta Regressao
-rf_model <- randomForest(quality ~. - qualidade,data = dados,  importance=TRUE ,ntree = 100)
-
-
-predito <- round(predict(rf_model))
-table(predicao=predito, observado=dados$quality)
-mean(predito == dados$quality)
-varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 
 ##floresta 2.0 Classificação
 
-rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE ,ntree = 100)
+rf_model <- randomForest(qualidade ~. - quality,data = dados,  importance = TRUE ,ntree = 500)
 
 
 predito <- predict(rf_model)
@@ -185,7 +147,6 @@ varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 impToPlot <- importance(rf_model, scale=FALSE)
 dotchart(sort(impToPlot[,5]), xlim=c(0,600), xlab="Gini",main ="Importância das Variáveis" )
 ##Arvore Classificação
-set.seed(1)
 tree <- rpart(qualidade ~. - quality,data = dados, control = rpart.control(cp = 0,maxdepth = 4))
 
 predito <- predict(tree,type = "class")
@@ -300,3 +261,6 @@ h3 <- dados %>% ggplot(aes(qualidade, volatile.acidity,fill = qualidade,group = 
   face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
   scale_fill_manual(values = myCol) 
 ```
+
+
+
