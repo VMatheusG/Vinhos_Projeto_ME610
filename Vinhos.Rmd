@@ -24,12 +24,14 @@ packages <- c("Rcpp",
               "pROC",
               "randomForest",
               "caret",
-              "xtable")
+              "xtable",
+              "devtools")
 
 ipak(packages)
 
-#library(devtools)
-#install_github("vqv/ggbiplot")
+#library()
+install_github("vqv/ggbiplot")
+library(ggbiplot)
 ```
 
 ##Carregando os dados
@@ -37,9 +39,9 @@ ipak(packages)
 ```{r}
 ##leitura dos dados
 red <- read.csv("winequality/winequality-red.csv",header = T,sep = ";") %>% 
-  mutate(vinho = as.factor("red"))
+  mutate(vinho = as.factor("Vermelho"))
 
-white <- read.csv("winequality/winequality-white.csv",header = T,sep = ";") %>% mutate(vinho =as.factor("white"))
+white <- read.csv("winequality/winequality-white.csv",header = T,sep = ";") %>% mutate(vinho =as.factor("Branco"))
 dados <- rbind(white,red)
 
 ```
@@ -198,14 +200,11 @@ prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],
 ```{r}
 #USADO PCA
 wine <- dados[,1:11]
-# wine.pca <- prcomp(wine, scale. = TRUE)
-# ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
-#          groups = dados[,13], ellipse = TRUE, circle = TRUE) +
-#   scale_color_discrete(name = '') +
-#   theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
-
-
-#A PARTIR DAQUI, DEVIDO A SEPARACAO DOS GRUPOS, RESOLVI ANALISAR SEPARADAMENTE
+ wine.pca <- prcomp(wine, scale. = TRUE)
+ ggbiplot(wine.pca, obs.scale = 1, var.scale = 1,
+          groups = dados[,13], ellipse = TRUE, circle = TRUE) +
+   scale_color_discrete(name = '') +
+   theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
 ```
 
 #FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
@@ -218,8 +217,7 @@ dados$rating = as.factor(dados$rating)
 
 dados$rating = relevel(dados$rating, "Ruim")
 
-
-model_RF = randomForest(rating ~ . -vinho -quality, data=dados)
+model_RF = randomForest(rating ~ . -quality, data=dados)
 print(model_RF) 
 
 print(importance(model_RF,type = 2)) 
@@ -228,47 +226,9 @@ pred_RF = predict(model_RF)
 ```
 
 ```{r echo=FALSE}
-table(dados$rating, pred_RF)
 #(1873+2302+840)/(1873+497+14+385+2302+149+26+411+840) = 0.77 precisao
 #Da floresta aleatório mostrado acima, podemos concluir que o alcool  eh um fator importante que na qualidade do vinho (ruim, bom, medio). Além disso, o modelo tem apenas 23% de erro que significa que podemos prever com precisão de 77%.
 ```
-
-```{r echo=FALSE, warning=FALSE}
-#FLORESTA ALEATORIA - VINHO VERMELHO
-red$rating[5 >= red$quality ] = "Ruim"
-red$rating[5< red$quality & red$quality < 7] = "Medio"
-red$rating[7<= red$quality] = "Bom"
-red$rating = as.factor(red$rating)
-
-red$rating = relevel(red$rating, "Ruim")
-
-
-V_model_RF = randomForest(rating ~ . -vinho -quality, data=red)
-print(model_RF) 
-
-print(importance(V_model_RF,type = 2)) 
-
-V_pred_RF = predict(V_model_RF)
-```
-
-```{r echo=FALSE, warning=FALSE}
-#FLORESTA ALEATORIA - VINHO BRANCO
-white$rating[5 >= white$quality ] = "Ruim"
-white$rating[5< white$quality & white$quality < 7] = "Medio"
-white$rating[7<= white$quality] = "Bom"
-white$rating = as.factor(white$rating)
-
-white$rating = relevel(white$rating, "Ruim")
-
-
-B_model_RF = randomForest(rating ~ . -vinho -quality, data=white)
-print(B_model_RF) 
-
-print(importance(B_model_RF,type = 2)) 
-
-B_pred_RF = predict(B_model_RF)
-```
-
 
 
 ```{r}
@@ -313,16 +273,30 @@ dados %>% ggplot(aes(x = volatile.acidity, y = density, color = quality)) +
    labs(y = "Densidade",x = "acidez volátil",color = "Qualidade")
 ```
 
-```{r}
-#SULFATO VS ALCOOL
-dados$quality <- as.factor(dados$quality)
 
-dados %>% ggplot(aes(x = sulphates, y = alcohol, color = quality)) +
-    facet_wrap(~vinho) + 
-    geom_point(size = 3, alpha = 1/4) +
-    scale_color_identity(guide = 'legend') +
-    ylim(min(dados$alcohol), quantile(dados$alcohol, 0.95)) +
-    xlim(min(dados$sulphates), quantile(dados$sulphates, 0.95)) +theme_bw() +
-  labs(y = "Sulfato",x = "Alcool",color = "Qualidade")
-  
+```{r}
+#ANALISANDO OS BOXPLOT POR VINHO E PELA QUALIDADE
+myCol <- brewer.pal(8, "Dark2")
+h1 <- dados %>% ggplot(aes(qualidade, alcohol,fill = qualidade,group = qualidade)) +geom_boxplot(show.legend = F) +
+  theme_bw() + facet_grid(.~ vinho)+
+  labs(y="Porcentagem (%)", title = " Box-plot Porcentagem de Alcool pela\n Qualidade",x=NULL) +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
+  scale_fill_manual(values = myCol) 
+
+
+h2 <- dados %>% ggplot(aes(qualidade, density,fill = qualidade,group = qualidade)) +geom_boxplot(show.legend = F) +
+  theme_bw() + facet_grid(.~ vinho)+
+  labs(y="Valores", title = " Box-plot densidade pela\n Qualidade",x=NULL) +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
+  scale_fill_manual(values = myCol) 
+
+
+h3 <- dados %>% ggplot(aes(qualidade, volatile.acidity,fill = qualidade,group = qualidade)) +geom_boxplot(show.legend = F) +
+  theme_bw() + facet_grid(.~ vinho)+
+  labs(y="Valores", title = " Box-plot do Acido pela\n Qualidade",x=NULL) +
+  theme(plot.title = element_text(size = 12,lineheight=.8,  
+  face="bold",hjust = 0.5),text=element_text(size=12,  family="sans")) +
+  scale_fill_manual(values = myCol) 
 ```
