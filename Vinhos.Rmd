@@ -25,7 +25,10 @@ packages <- c("Rcpp",
               "randomForest",
               "caret",
               "xtable",
-              "devtools")
+              "devtools",
+              "tidyr",
+              "purrr",
+              "dplyr")
 
 ipak(packages)
 
