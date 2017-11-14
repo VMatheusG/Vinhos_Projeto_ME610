@@ -149,7 +149,13 @@ table(Predito = predito,Referência = dados$qualidade)
 varImpPlot(rf_model,main = "Importância das Variáveis",type = 2)
 impToPlot <- importance(rf_model, scale=FALSE)
 dotchart(sort(impToPlot[,5]), xlim=c(0,600), xlab="Gini",main ="Importância das Variáveis" )
+
+
+
 ##Arvore Classificação
+
+
+
 tree <- rpart(qualidade ~. - quality,data = dados, control = rpart.control(cp = 0,maxdepth = 4))
 
 predito <- predict(tree,type = "class")
@@ -157,8 +163,36 @@ predito <- predict(tree,type = "class")
 confusionMatrix(predito,dados$qualidade)
 table(Predito = predito,Referência = dados$qualidade)
 prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],tweak = 1.5,fallen.leaves = T,main = "Árvore de Decisão \n Qualidade do Vinho")
+##Arvore Classificação CARET
+n <- nrow(dados)
+trainIdx <- createDataPartition(y = dados$qualidade, p=0.7, list=FALSE)
+
+train <- dados[trainIdx, ]
+test <- dados[-trainIdx, ]
 
 
+train.control <- trainControl(method="repeatedcv", number=10, repeats = 3, returnResamp = "all", search = "random")
+
+tree.fit <- train(qualidade ~. - quality,data = train,
+                 method = "rpart",
+                 trControl = train.control,
+                 control = rpart.control(maxdepth = 4))
+tree.fit$results
+plot(tree.fit)
+tree.predict <- predict(tree.fit, newdata = test)
+confusionMatrix(tree.predict, test$qualidade)
+tree <- tree.fit$finalModel
+
+prp(tree,type = 4,box.col=c("#C745C9","#6D85DE", "palegreen3")[tree$frame$yval],tweak = 1.8,fallen.leaves = F,main = "Árvore de Decisão \n Qualidade do Vinho")
+
+##ramdom Forest by Caret
+forest.fit <- train(qualidade ~. - quality,data = train,
+                 method = "rf",
+                 trControl = train.control)
+forest.fit$results
+plot(forest.fit)
+forest.predict <- predict(forest.fit, newdata = test)
+confusionMatrix(forest.predict, test$qualidade)
 ```
 
 ```{r}
@@ -169,24 +203,6 @@ wine <- dados[,1:11]
           groups = dados[,13], ellipse = TRUE, circle = TRUE) +
    scale_color_discrete(name = '') +
    theme(legend.direction = 'horizontal', legend.position = 'top') + theme_bw()
-```
-
-#FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
-```{r echo=FALSE, warning=FALSE}
-#FLORESTA ALEATORIA VINHO BRANCO E VERMELHO
-dados$rating[5 >= dados$quality ] = "Ruim"
-dados$rating[5< dados$quality & dados$quality < 7] = "Medio"
-dados$rating[7<= dados$quality] = "Bom"
-dados$rating = as.factor(dados$rating)
-
-dados$rating = relevel(dados$rating, "Ruim")
-
-model_RF = randomForest(rating ~ . -quality, data=dados)
-print(model_RF) 
-
-print(importance(model_RF,type = 2)) 
-
-pred_RF = predict(model_RF)
 ```
 
 ```{r echo=FALSE}
